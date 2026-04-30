@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -32,11 +33,25 @@ INTENT_HINTS = {
     "aftersale": ["发霉", "受潮", "破损", "退货", "退款", "退换", "漏发", "没收到", "投诉", "315", "起诉", "曝光"],
 }
 
-# 意图 → 优先检索的 node_type 集合（不强制；仅作为偏置传入 search）
+# 意图 → 优先检索的 node_type 集合（必须与 schema.py 实际类型对齐）
+# 之前用了 ["product", "brand"] 等不存在的根名导致全过滤掉、走 fallback；
+# 现在直接列实际 17 类，保证 product_sku（最具体的 SKU 信息）能命中。
 INTENT_NODE_TYPES = {
-    "recommend": ["product", "brand", "review"],
-    "brewing":   ["brewing", "brewing_issue", "drinking_advice"],
-    "aftersale": ["policy", "faq", "drinking_advice"],
+    "recommend": [
+        "product_sku", "product_category", "product_scene",
+        "product_origin", "product_grade",
+        "process_aroma", "process_flavor", "process_craft", "process_compare",
+        "brand_story", "brand_collab",
+    ],
+    "brewing": [
+        "brewing_params", "brewing_vessel",
+        "brewing_category_tip", "brewing_troubleshoot",
+        "process_aroma", "process_flavor",
+    ],
+    "aftersale": [
+        "commerce_order", "commerce_logistics", "commerce_return_policy",
+        "commerce_aftersale_sop", "commerce_membership", "advice_storage",
+    ],
 }
 
 ESCALATION_KEYWORDS = ["315", "曝光", "起诉", "媒体", "投诉", "赔我", "没人管", "法院", "公安", "黑猫"]
@@ -63,6 +78,46 @@ def classify_intent(user_msg: str) -> str:
     scores = {k: sum(1 for w in ws if w in msg) for k, ws in INTENT_HINTS.items()}
     best, score = max(scores.items(), key=lambda x: x[1])
     return best if score > 0 else "recommend"   # 默认按推荐入口
+
+
+_BUDGET_PAT = re.compile(r"(?:预算|大概|约)?\s*([1-9]\d{2,4})\s*(?:元|块|左右|以内|以下|上下)?")
+_PRICE_PAT = re.compile(r"([1-9]\d{1,5})\s*元")
+
+
+def extract_budget(user_msg: str) -> int | None:
+    """从用户消息抽出预算（元）。仅在 recommend 场景使用，兜底 None。"""
+    # 抓所有候选数字，挑"预算/大概/左右/以内"附近的；否则取最大
+    candidates = [int(m.group(1)) for m in _BUDGET_PAT.finditer(user_msg) if 100 <= int(m.group(1)) <= 100000]
+    if not candidates:
+        return None
+    # 优先附近带"预算/左右/以内"上下文的
+    for kw in ("预算", "左右", "以内", "以下"):
+        if kw in user_msg:
+            return candidates[0]
+    return None
+
+
+def _node_max_price(text: str) -> int | None:
+    """节点正文里出现的最大价格（元）。礼盒/罐装混合时取最大值代表上限。"""
+    nums = _PRICE_PAT.findall(text)
+    return max(int(n) for n in nums) if nums else None
+
+
+def budget_rerank(hits: list[Hit], budget: int | None) -> list[Hit]:
+    """预算敏感：节点最大价 > budget×1.5 时分数 ×0.4 demote。
+    避免"送领导预算 800"被 25000 元/斤的高端款占据 top-3。"""
+    if not budget or not hits:
+        return hits
+    rescored: list[Hit] = []
+    for h in hits:
+        price = _node_max_price(h.node.text)
+        score = h.score
+        if price and price > budget * 1.5:
+            score = score * 0.4
+        rescored.append(Hit(node=h.node, score=score,
+                            score_vector=h.score_vector, score_bm25=h.score_bm25))
+    rescored.sort(key=lambda h: -h.score)
+    return rescored
 
 
 def detect_category(user_msg: str) -> str | None:
@@ -196,6 +251,10 @@ class Agent:
                         hits.append(h)
                         if len(hits) >= 5:
                             break
+
+        # 预算敏感重排：query 含"预算 X" 时把远超预算的节点 demote
+        if intent == "recommend":
+            hits = budget_rerank(hits, extract_budget(user_msg))
 
         confidence = self.index.confidence(hits)
         context_block = build_context_block(hits)
@@ -343,6 +402,8 @@ class Agent:
                     hits.append(h)
                     if len(hits) >= 5:
                         break
+        if intent == "recommend":
+            hits = budget_rerank(hits, extract_budget(user_msg))
         confidence = self.index.confidence(hits)
         context_block = build_context_block(hits)
 
