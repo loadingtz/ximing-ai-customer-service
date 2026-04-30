@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: 语法 + 模块导入 + Schema 完整性
+        run: |
+          python -c "
+          import ast, pathlib, sys
+          for p in pathlib.Path('.').rglob('*.py'):
+              if '.venv' in str(p): continue
+              ast.parse(p.read_text(encoding='utf-8'))
+          print('✓ syntax')
+
+          sys.path.insert(0, '.')
+          from ingestion import discover, fetch, extract, pipeline, schema, search_backends, fetch_backends, section_extract
+          from retrieval.hybrid_search import HybridIndex
+          from retrieval.vector_store import VectorStore
+          from safety import compliance_filter
+          from tools import business_tools
+          from agent.orchestrator import Agent
+          print('✓ imports')
+
+          from ingestion.schema import ALL_NODES, NODE_TYPES
+          assert len(ALL_NODES) == 24, len(ALL_NODES)
+          assert len(set(NODE_TYPES)) == 24
+          print('✓ schema 24 nodes')
+          "
+      - name: 合规过滤器单测
+        run: |
+          python -c "
+          import sys; sys.path.insert(0, '.')
+          from safety.compliance_filter import check
+          r = check('喝我们的茶能治高血压、降三高，国家级第一品牌！')
+          assert not r.safe and len(r.violations) >= 4
+          assert check('正岩肉桂桂皮香显，回甘悠长。').safe
+          print('✓ compliance filter')
+          "
+      - name: sources.yaml 校验（白名单 + SKU 数）
+        run: |
+          python -c "
+          import yaml
+          cfg = yaml.safe_load(open('ingestion/sources.yaml'))
+          seeds = cfg['seed_urls']
+          skus = [s for s in seeds if 'showPro.aspx' in s.get('url','')]
+          allow = cfg.get('host_allowlist') or []
+          assert len(skus) >= 100, f'SKU 种子页应≥100，实际 {len(skus)}'
+          assert 'ximingcha.com' in allow
+          print(f'✓ sources.yaml: {len(seeds)} seed_urls (含 {len(skus)} SKU), {len(allow)} 白名单域名')
+          "

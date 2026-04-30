@@ -1,0 +1,29 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# 秘密
+.env
+.env.local
+
+# 体积大或频繁变更的索引——clone 时不需要，启动时自动从 nodes.jsonl 重建
+data/vector.db
+data/vector.db.lock
+
+# 注意：以下文件**入 git**（让 clone 即用）：
+#   data/knowledge/nodes.jsonl       (584KB，970 节点 100% 官方源)
+#   data/knowledge/pending_review.jsonl
+#   data/knowledge/manifest.json
+
+# 模型权重缓存（CI 缓存命中即可，无需入库）
+.cache/
+~/.cache/
+
+# IDE
+.idea/
+.vscode/
+.DS_Store
+data/.vector.db.lock

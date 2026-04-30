@@ -1,0 +1,12 @@
+{
+  "pages_fetched": 131,
+  "nodes_total": 997,
+  "nodes_approved": 970,
+  "nodes_pending_review": 27,
+  "nodes_indexed": 0,
+  "fetch_backend": "multi (jina/tavily/firecrawl)",
+  "search_backend": "multi (tavily/serpapi/jina-ddg/jina-bing/ddg-lib)",
+  "extract_mode": "llm",
+  "model_llm": "anthropic/claude-sonnet-4.5",
+  "embed_model": "BAAI/bge-small-zh-v1.5"
+}

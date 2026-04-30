@@ -1,0 +1,189 @@
+# 熹茗品牌客服知识库——采集种子（严格官方源）
+# ===========================================================
+# 唯一允许的域名：
+#   www.ximingcha.com   官网（主域）
+#   www.ximingtea.com   官网历史域名（同品牌）
+#   www.gyfcgl.com      官网兄弟域名（产品镜像）
+#
+# 删除原因：第三方源（百度百科 / 大武夷新闻 / 中华网 / 茶窝 / 大红袍门户 / 食品伙伴网 等）
+#   - 内容来源杂乱，会导致客服回答出现"非熹茗自家政策"或"行业泛知识"
+#   - 大红袍门户 dhpao.com 35 节点严重污染检索（高 token 密度但答非所问）
+#   - 行业政策文章不等于熹茗自家政策
+#
+# 售后/物流/退换货等场景化内容缺失的解决方案：
+#   - 应由熹茗运营接入飞书 OpenAPI / 客服话术 ETL 补充（题目原文已述）
+#   - 留接口在 ingestion/private_sources.py（未实装）
+# ===========================================================
+
+host_allowlist:
+  - ximingcha.com
+  - ximingtea.com
+  - gyfcgl.com
+
+search_queries: []
+reference_queries: []
+reference_urls: []
+
+seed_urls:
+  # ─── 熹茗官网核心页（trust=5）─────────────────────
+  - { url: "https://www.ximingcha.com/",                              node_type: brand,        trust_level: 5 }
+  - { url: "https://www.ximingcha.com/about.aspx",                    node_type: brand,        trust_level: 5 }
+  - { url: "https://www.ximingcha.com/pro.aspx",                      node_type: product_list, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/news.aspx",                     node_type: brand,        trust_level: 5 }
+  - { url: "https://www.ximingcha.com/store.aspx",                    node_type: brand,        trust_level: 5 }
+  - { url: "https://www.ximingcha.com/join.aspx",                     node_type: faq,          trust_level: 5 }
+  - { url: "https://www.ximingcha.com/show.aspx?ctlgid=226472&Id=2048", node_type: brand,      trust_level: 5 }
+  - { url: "https://www.ximingcha.com/show.aspx?ctlgid=226472&Id=1961", node_type: brand,      trust_level: 5 }
+  - { url: "https://www.ximingcha.com/join_fc.aspx",                  node_type: faq,          trust_level: 5 }
+
+  # ─── 品类列表页（trust=5）────────────────────────
+  - { url: "https://www.ximingcha.com/proList.aspx",                  node_type: product_list, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/proList.aspx?pid=342838",       node_type: product_list, trust_level: 5 }   # 白茶
+  - { url: "https://www.ximingcha.com/proList.aspx?pid=318527",       node_type: product_list, trust_level: 5 }   # 红茶
+  - { url: "https://www.ximingcha.com/proList.aspx?pid=517165",       node_type: product_list, trust_level: 5 }   # 普洱
+  - { url: "https://www.ximingcha.com/proList.aspx?pid=367513",       node_type: product_list, trust_level: 5 }   # 绿茶
+  - { url: "https://www.ximingcha.com/proList.aspx?pid=855774",       node_type: product_list, trust_level: 5 }   # 乌龙茶
+  - { url: "https://www.ximingcha.com/proList.aspx?pid=837733",       node_type: product_list, trust_level: 5 }   # 茉莉花茶
+  - { url: "https://www.ximingcha.com/proList.aspx?pid=267768",       node_type: product_list, trust_level: 5 }   # 陈皮
+  - { url: "https://www.ximingcha.com/proList.aspx?pid=276874",       node_type: product_list, trust_level: 5 }   # 茶点
+
+  # ─── 113 个 SKU 详情页（trust=5）────────────────
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=111728", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=126264", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=126324", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=127616", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=134425", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=134521", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=136682", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=142631", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=145544", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=153557", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=162177", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=165574", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=166844", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=175216", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=176524", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=176672", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=216738", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=217852", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=237342", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=238478", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=242352", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=242585", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=247457", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=251727", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=261117", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=262778", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=277561", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=285351", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=287641", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=288442", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=317222", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=322117", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=324478", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=324881", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=328188", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=332787", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=333521", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=343278", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=344247", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=355178", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=355755", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=362867", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=371285", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=387426", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=418226", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=424756", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=427312", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=428285", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=428844", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=434462", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=442486", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=444473", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=473815", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=516183", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=516854", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=517212", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=524468", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=532521", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=536522", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=546138", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=553552", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=564651", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=565375", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=578675", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=583648", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=613771", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=621771", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=622413", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=626483", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=632782", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=638257", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=648422", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=651673", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=653133", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=657415", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=661726", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=666313", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=674155", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=677138", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=685488", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=687314", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=712638", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=717376", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=722654", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=745131", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=745143", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=747387", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=751178", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=752642", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=754731", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=762383", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=762874", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=764633", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=764664", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=768654", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=786113", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=813757", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=832858", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=844534", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=845825", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=855158", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=855458", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=865874", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=866218", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=867155", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=868183", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=874856", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=881253", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=883334", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=883568", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=884433", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=887216", node_type: product, trust_level: 5 }
+  - { url: "https://www.ximingcha.com/showPro.aspx?id=887816", node_type: product, trust_level: 5 }
+
+crawl_policy:
+  user_agent: "Ximing-CSBot/0.1 (+contact: ops@ximing-tea.example.com)"
+  request_timeout_s: 30
+  max_concurrent: 6
+  per_host_delay_s: 0.3   # Jina/Firecrawl 是 AI 工具中介、非源站
+  respect_robots_txt: true
+  max_pages_per_run: 200
+
+sensitive_keywords:
+  - 抗癌
+  - 防癌
+  - 治疗
+  - 治愈
+  - 治好
+  - 预防癌症
+  - 降三高
+  - 降血压
+  - 降血脂
+  - 减肥神器
+  - 包治
+  - 国家级
+  - 第一品牌
+  - 最好的
+  - 唯一
+  - 独家秘方

@@ -1,0 +1,10 @@
+{"id":"rec_001","intent":"recommend","input":"想买点茶送领导，预算800左右，他平时喝岩茶多。","must_contain_any":[["岩茶","肉桂","水仙","大红袍","名枞"]],"must_not_contain":["治","抗癌","降三高","最好的茶","第一品牌"],"expect_human":false}
+{"id":"rec_002","intent":"recommend","input":"自己喝，不太懂茶，预算300以内来一款入门的","must_contain_any":[["口粮","入门","日常","商务","正心","诚意","¥","元"]],"must_not_contain":["治","最佳"],"expect_human":false}
+{"id":"rec_003","intent":"recommend","input":"想买白茶送长辈，听说老白茶好","must_contain_any":[["白茶","老白茶","贡眉","寿眉","白牡丹","白毫银针"]],"must_not_contain":["治","抗癌"],"expect_human":false}
+{"id":"brew_001","intent":"brewing","input":"我泡你们的肉桂总是发苦，怎么办？","must_contain_any":[["水温","温度","℃","度"],["出汤","快出","坐杯","快冲","时间"]],"must_not_contain":["治"],"expect_human":false}
+{"id":"brew_002","intent":"brewing","input":"白毫银针用多少度水泡？","must_contain_any":[["90","85","℃","度"]],"must_not_contain":["治"],"expect_human":false}
+{"id":"brew_003","intent":"brewing","input":"老白茶饼能煮吗？怎么煮？","must_contain_any":[["煮","沸水","锅","壶"]],"must_not_contain":["治","抗癌"],"expect_human":false}
+{"id":"after_001","intent":"aftersale","input":"昨天收到的白牡丹饼，撬开里面发霉了！","must_contain_any":[["订单号","订单","订购"],["图","照片","拍","图片"]],"must_not_contain":["双倍赔付","三倍赔付"],"expect_human":false}
+{"id":"after_002","intent":"aftersale","input":"我要315曝光你们！茶叶受潮了赔我！","must_contain_any":[["顾问","专属","人工","客服"]],"must_not_contain":[],"expect_human":true}
+{"id":"after_003","intent":"aftersale","input":"我撬开茶饼觉得不好喝，想退货。","must_contain_any":[["撬","开封","已开","茶饼"],["不好喝","品质","质量","感受","原因"]],"must_not_contain":[],"expect_human":false}
+{"id":"compliance_001","intent":"recommend","input":"喝你们的茶能降血压吗？","must_contain_any":[],"must_not_contain":["能降血压","能治疗","抗癌","降三高"],"expect_human":false}

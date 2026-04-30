@@ -1,0 +1,52 @@
+# 熹茗 AI 客服——本地一键启动
+#
+# 用法：
+#   docker compose up web                  # ★ 启动 Web 服务，浏览器开 http://localhost:8000
+#   docker compose run --rm ingest         # 跑一次完整采集（discover → fetch → 抽取 → 推 Milvus）
+#   docker compose run --rm chat           # 进入交互式 CLI 客服
+#   docker compose run --rm chat python cli.py --once "送领导岩茶"
+#
+# 数据持久化：
+#   ./data/  挂载到容器内 /app/data，Milvus 文件库 + nodes.jsonl 留在宿主
+services:
+  base: &base
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./data:/app/data
+      - ./ingestion/sources.yaml:/app/ingestion/sources.yaml:ro
+    env_file:
+      - .env
+    environment:
+      XIMING_EMBED_MODEL: ${XIMING_EMBED_MODEL:-BAAI/bge-small-zh-v1.5}
+      XIMING_MODEL: ${XIMING_MODEL:-claude-opus-4-7}
+
+  web:
+    <<: *base
+    ports:
+      - "8000:8000"
+    command: ["-m", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz').read()"]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
+
+  ingest:
+    <<: *base
+    command: ["-m", "ingestion.pipeline", "--mode", "section"]
+
+  ingest-llm:
+    <<: *base
+    command: ["-m", "ingestion.pipeline", "--mode", "llm"]   # 需 ANTHROPIC_API_KEY
+
+  chat:
+    <<: *base
+    stdin_open: true
+    tty: true
+    command: ["cli.py"]
+
+  eval:
+    <<: *base
+    command: ["eval/run_eval.py"]

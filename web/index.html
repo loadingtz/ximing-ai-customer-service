@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>熹茗 AI 客服 · 小茗</title>
+<style>
+  :root {
+    --bg: #fbf8f3; --panel: #ffffff; --ink: #2a2620; --muted: #8a8174;
+    --user: #f0eadc; --bot: #ffffff; --accent: #8b5e34; --border: #ece5d6;
+    --ok: #5b8c44; --warn: #c08a2e; --err: #b8412c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font: 15px/1.6 -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--ink);
+    display: grid; grid-template-rows: auto 1fr auto; height: 100vh;
+  }
+  header {
+    padding: 14px 22px; background: var(--panel); border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand .dot {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #c89465);
+    color: white; display: grid; place-items: center; font-weight: 600;
+  }
+  .brand h1 { font-size: 16px; font-weight: 600; }
+  .brand small { color: var(--muted); display: block; font-size: 12px; font-weight: normal; }
+  header .stats { font-size: 12px; color: var(--muted); text-align: right; }
+  header .stats b { color: var(--ink); font-weight: 600; }
+
+  main {
+    overflow-y: auto; padding: 22px; background: var(--bg);
+    scroll-behavior: smooth;
+  }
+  .container { max-width: 760px; margin: 0 auto; }
+
+  .msg { margin-bottom: 18px; display: flex; gap: 10px; }
+  .msg.user { flex-direction: row-reverse; }
+  .avatar {
+    width: 30px; height: 30px; border-radius: 50%; flex: 0 0 30px;
+    display: grid; place-items: center; font-size: 12px; font-weight: 600;
+  }
+  .msg.user .avatar { background: var(--user); color: var(--accent); }
+  .msg.bot .avatar { background: var(--accent); color: white; }
+  .bubble {
+    padding: 12px 16px; border-radius: 14px;
+    max-width: 80%;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    line-height: 1.7;
+    /* 中英文混排不丢换行 + 长字符串自动 wrap */
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+  /* 用户气泡：保留原始换行（按 Enter 输入的换行也显示出来） */
+  .msg.user .bubble {
+    white-space: pre-wrap;
+    text-align: left;        /* 默认靠左，避免被父元素 row-reverse 影响 */
+  }
+  /* 机器人气泡：markdown 已经把 \n 转 <br>，不需要 pre-wrap */
+  .msg.bot .bubble strong { color: var(--accent); font-weight: 600; }
+  .msg.bot .bubble em { color: var(--accent); font-style: normal; opacity: 0.85; }
+  .msg.bot .bubble code {
+    background: rgba(139,94,52,0.08); color: var(--accent);
+    padding: 1px 6px; border-radius: 4px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 13px;
+  }
+  .msg.user .bubble { background: var(--user); border-top-right-radius: 4px; }
+  .msg.bot .bubble { background: var(--bot); border: 1px solid var(--border); border-top-left-radius: 4px; }
+
+  .meta {
+    margin-top: 6px; font-size: 12px; color: var(--muted);
+    display: flex; flex-wrap: wrap; gap: 8px;
+  }
+  .meta .tag {
+    padding: 1px 8px; border-radius: 10px; background: rgba(139, 94, 52, 0.08);
+    color: var(--accent); font-family: ui-monospace, monospace; font-size: 11px;
+  }
+  .meta .tag.warn { background: rgba(192, 138, 46, 0.12); color: var(--warn); }
+  .meta .tag.err { background: rgba(184, 65, 44, 0.12); color: var(--err); }
+  .meta .tag.ok { background: rgba(91, 140, 68, 0.12); color: var(--ok); }
+
+  .typing { display: inline-block; }
+  .typing span {
+    display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--muted); margin: 0 1px;
+    animation: blink 1.2s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink { 0%,80%,100% { opacity: 0.2 } 40% { opacity: 1 } }
+
+  footer {
+    background: var(--panel); border-top: 1px solid var(--border);
+    padding: 12px 22px;
+  }
+  .composer {
+    max-width: 760px; margin: 0 auto;
+    display: flex; gap: 10px; align-items: flex-end;
+  }
+  textarea {
+    flex: 1; border: 1px solid var(--border); border-radius: 12px;
+    padding: 10px 14px; font: inherit; resize: none; min-height: 42px; max-height: 160px;
+    background: white; color: var(--ink); outline: none;
+  }
+  textarea:focus { border-color: var(--accent); }
+  button {
+    padding: 10px 22px; background: var(--accent); color: white; border: 0;
+    border-radius: 12px; font: inherit; font-weight: 600; cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button:hover:not(:disabled) { opacity: 0.9; }
+  .hint {
+    max-width: 760px; margin: 8px auto 0; font-size: 12px; color: var(--muted);
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .hint .pill {
+    cursor: pointer; padding: 3px 10px; border-radius: 999px;
+    background: rgba(139, 94, 52, 0.06); color: var(--accent);
+    border: 1px solid var(--border); transition: background 0.1s;
+  }
+  .hint .pill:hover { background: rgba(139, 94, 52, 0.12); }
+
+  .switch { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); cursor: pointer; }
+  .switch input { accent-color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="dot">茗</div>
+    <div>
+      <h1>熹茗 AI 客服 · 小茗</h1>
+      <small>朱子后人 · 制茶世家</small>
+    </div>
+  </div>
+  <div class="stats" id="stats">…</div>
+</header>
+
+<main id="main">
+  <div class="container" id="messages">
+    <div class="msg bot">
+      <div class="avatar">茗</div>
+      <div>
+        <div class="bubble">您好，我是熹茗官方 AI 茶艺顾问"小茗"。可以问我产品推荐、冲泡方法、退换货政策等。</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="composer">
+    <textarea id="input" placeholder="想问点什么？例如：牛魁肉桂多少钱一盒" rows="1" autofocus></textarea>
+    <button id="send">发送</button>
+  </div>
+  <div class="hint">
+    <label class="switch"><input type="checkbox" id="debug" /> 开发者模式（显示意图/置信度/工具调用）</label>
+    <span style="margin-left:auto;color:var(--muted)">试试：</span>
+    <span class="pill" data-q="送领导岩茶礼盒预算1500">送领导礼盒预算 1500</span>
+    <span class="pill" data-q="牛魁肉桂多少钱一盒">牛魁肉桂多少钱</span>
+    <span class="pill" data-q="白毫银针水温多少度">白毫银针水温</span>
+    <span class="pill" data-q="茶饼撬开发现发霉了怎么办">茶饼发霉怎么办</span>
+    <span class="pill" data-q="孕妇能喝茶吗">孕妇能喝茶吗</span>
+  </div>
+</footer>
+
+<script>
+const $ = sel => document.querySelector(sel);
+const $$ = sel => document.querySelectorAll(sel);
+
+const state = {
+  sessionId: null,
+  pending: false,
+};
+
+// 检测当前 page 是否能调到后端
+const apiBase = (location.protocol === 'http:' || location.protocol === 'https:') ? '' : null;
+
+async function loadStats() {
+  if (apiBase === null) {
+    $('#stats').innerHTML = '<span style="color:#b8412c">⚠ 当前在静态预览，<br/>请启动后端：<code style="background:#f5efe1;padding:2px 6px;border-radius:4px">uvicorn app:app</code></span>';
+    return;
+  }
+  try {
+    const r = await fetch(apiBase + '/stats');
+    const s = await r.json();
+    const llmBadge = s.llm_ready
+      ? `<span style="color:var(--ok)">● ${s.llm_backend}</span>`
+      : '<span style="color:#b8412c">⚠ 未配置 key</span>';
+    $('#stats').innerHTML =
+      `<b>${s.kb_nodes}</b> 节点 · <b>${s.sku_pages}</b> SKU<br/>
+       <span style="font-size:11px">embed: ${s.embed_model.split('/').pop()} · ${llmBadge} ${s.llm_model || ''}</span>`;
+  } catch (e) {
+    $('#stats').innerHTML = '<span style="color:#b8412c">⚠ 后端未启动</span>';
+  }
+}
+
+// 简易 markdown 渲染（先 escape，再做安全替换）—— **粗体** / *斜体* / `code` / 换行
+function renderMd(s) {
+  if (!s) return '';
+  let out = String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  out = out.replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>');
+  out = out.replace(/(^|[^*])\*([^*\n]+?)\*(?!\*)/g, '$1<em>$2</em>');
+  out = out.replace(/`([^`\n]+?)`/g, '<code>$1</code>');
+  out = out.replace(/\n/g, '<br>');
+  return out;
+}
+
+function addMsg(role, text, meta) {
+  const wrap = document.createElement('div');
+  wrap.className = 'msg ' + (role === 'user' ? 'user' : 'bot');
+  wrap.innerHTML = `
+    <div class="avatar">${role === 'user' ? '我' : '茗'}</div>
+    <div>
+      <div class="bubble"></div>
+      <div class="meta"></div>
+    </div>`;
+  // 用户消息保持纯文本；机器人消息走 markdown
+  if (role === 'user') {
+    wrap.querySelector('.bubble').textContent = text;
+  } else {
+    wrap.querySelector('.bubble').innerHTML = renderMd(text);
+  }
+  if (meta) {
+    const m = wrap.querySelector('.meta');
+    m.innerHTML = meta;
+  }
+  $('#messages').appendChild(wrap);
+  $('#main').scrollTop = $('#main').scrollHeight;
+  return wrap;
+}
+
+function addTyping() {
+  const wrap = document.createElement('div');
+  wrap.className = 'msg bot typing-row';
+  wrap.innerHTML = `<div class="avatar">茗</div>
+    <div><div class="bubble"><span class="typing"><span></span><span></span><span></span></span></div></div>`;
+  $('#messages').appendChild(wrap);
+  $('#main').scrollTop = $('#main').scrollHeight;
+  return wrap;
+}
+
+function metaHtml(resp, debug) {
+  const parts = [];
+  if (resp.need_human) parts.push('<span class="tag warn">已转人工</span>');
+  if (resp.next_action) parts.push(`<span class="tag">下一步: ${resp.next_action}</span>`);
+  if (resp.cite && resp.cite.length) parts.push(`<span class="tag">cite: ${resp.cite.slice(0,2).join(',')}</span>`);
+  if (debug) {
+    if (resp.intent) parts.push(`<span class="tag">intent: ${resp.intent}</span>`);
+    if (typeof resp.confidence === 'number') parts.push(`<span class="tag">conf: ${resp.confidence}</span>`);
+    if (resp.tool_calls && resp.tool_calls.length) {
+      parts.push(`<span class="tag">tools: ${resp.tool_calls.map(t => t.name).join(',')}</span>`);
+    }
+    if (resp.raw_violations && resp.raw_violations.length) {
+      parts.push(`<span class="tag err">违规命中: ${resp.raw_violations.join(',')}</span>`);
+    }
+  }
+  return parts.join('');
+}
+
+async function send() {
+  if (state.pending) return;
+  const text = $('#input').value.trim();
+  if (!text) return;
+  $('#input').value = '';
+  $('#input').style.height = 'auto';
+  addMsg('user', text);
+
+  if (apiBase === null) {
+    addMsg('bot',
+      '当前是预览模式，没有后端可用。\n\n' +
+      '在终端运行：\n  cd /Users/aoweisi/Downloads/xim\n  .venv/bin/python -m uvicorn app:app --port 8000\n\n' +
+      '然后打开 http://localhost:8000'
+    );
+    return;
+  }
+
+  state.pending = true;
+  $('#send').disabled = true;
+  const debug = $('#debug').checked;
+
+  // 用 SSE streaming——首字节秒级显示，避免长等待白屏
+  // 创建空 bot 气泡，边收边追加
+  const wrap = document.createElement('div');
+  wrap.className = 'msg bot';
+  wrap.innerHTML = '<div class="avatar">茗</div><div><div class="bubble"></div><div class="meta"></div></div>';
+  $('#messages').appendChild(wrap);
+  const bubble = wrap.querySelector('.bubble');
+  const meta = wrap.querySelector('.meta');
+  bubble.innerHTML = '<span class="typing"><span></span><span></span><span></span></span>';
+  $('#main').scrollTop = $('#main').scrollHeight;
+
+  let firstByte = false;
+  let resp = { reply: '', cite: [], need_human: false, intent: null, confidence: 0 };
+
+  try {
+    const r = await fetch(apiBase + '/chat/stream', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ message: text, session_id: state.sessionId, debug }),
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const reader = r.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      // 解析 SSE：按 \n\n 分割帧
+      let idx;
+      while ((idx = buf.indexOf('\n\n')) >= 0) {
+        const frame = buf.slice(0, idx).trim();
+        buf = buf.slice(idx + 2);
+        if (!frame.startsWith('data:')) continue;
+        const payload = frame.slice(5).trim();
+        if (payload === '[DONE]') break;
+        let data;
+        try { data = JSON.parse(payload); } catch { continue; }
+        if (data.delta !== undefined) {
+          if (!firstByte) {
+            bubble.innerHTML = ''; // 清掉打字气泡
+            firstByte = true;
+          }
+          resp.reply += data.delta;
+          // 流式时整段重渲染——避免 ** 在 chunk 边界被切坏
+          bubble.innerHTML = renderMd(resp.reply);
+          $('#main').scrollTop = $('#main').scrollHeight;
+        } else if (data.meta) {
+          Object.assign(resp, data.meta);
+        }
+      }
+    }
+    if (!firstByte) bubble.textContent = '（无回复）';
+    Object.assign(resp, resp);
+    state.sessionId = resp.session_id || state.sessionId;
+    meta.innerHTML = metaHtml(resp, debug);
+  } catch (e) {
+    bubble.textContent = '请求失败：' + e.message + '\n后端是否在 8000 端口运行？';
+  } finally {
+    state.pending = false;
+    $('#send').disabled = false;
+    $('#input').focus();
+  }
+}
+
+$('#send').onclick = send;
+$('#input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+});
+$('#input').addEventListener('input', e => {
+  e.target.style.height = 'auto';
+  e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px';
+});
+$$('.pill').forEach(p => p.onclick = () => { $('#input').value = p.dataset.q; send(); });
+
+loadStats();
+</script>
+</body>
+</html>

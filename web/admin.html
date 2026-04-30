@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>熹茗 KB 浏览器 · Milvus 内容</title>
+<style>
+  :root {
+    --bg: #fbf8f3; --panel: #ffffff; --ink: #2a2620; --muted: #8a8174;
+    --accent: #8b5e34; --border: #ece5d6; --hover: #f5efe1;
+    --ok: #5b8c44; --warn: #c08a2e; --err: #b8412c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font: 14px/1.5 -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--ink); padding: 20px; }
+
+  header { max-width: 1200px; margin: 0 auto 16px; display: flex; align-items: baseline; gap: 16px; }
+  h1 { font-size: 18px; font-weight: 600; }
+  header a { color: var(--accent); text-decoration: none; font-size: 13px; }
+  header a:hover { text-decoration: underline; }
+  header .stats { margin-left: auto; color: var(--muted); font-size: 12px; }
+
+  .toolbar {
+    max-width: 1200px; margin: 0 auto 16px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  }
+  .toolbar input, .toolbar select {
+    padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px;
+    font: inherit; background: white; outline: none;
+  }
+  .toolbar input:focus, .toolbar select:focus { border-color: var(--accent); }
+  .toolbar input[type=text] { flex: 1; min-width: 240px; }
+  .toolbar label { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted); }
+  .toolbar button {
+    padding: 8px 16px; background: var(--accent); color: white; border: 0;
+    border-radius: 8px; font: inherit; font-weight: 600; cursor: pointer;
+  }
+  .toolbar .pill {
+    padding: 4px 10px; border-radius: 999px; background: var(--hover);
+    color: var(--accent); font-size: 12px; cursor: pointer;
+    border: 1px solid var(--border);
+  }
+  .toolbar .pill.active { background: var(--accent); color: white; }
+
+  .results {
+    max-width: 1200px; margin: 0 auto;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden;
+  }
+  .summary {
+    padding: 10px 14px; background: var(--hover);
+    border-bottom: 1px solid var(--border); font-size: 13px; color: var(--muted);
+  }
+  .summary b { color: var(--ink); }
+
+  table { width: 100%; border-collapse: collapse; }
+  th, td {
+    padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border);
+    font-size: 13px; vertical-align: top;
+  }
+  th { background: white; color: var(--muted); font-weight: 500; font-size: 12px; }
+  tr:hover { background: var(--hover); }
+  tr.expanded { background: var(--hover); }
+
+  .doc_id { font-family: ui-monospace, monospace; font-size: 11px; color: var(--accent); cursor: pointer; }
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 999px;
+    font-size: 11px; font-family: ui-monospace, monospace;
+  }
+  .b-cat { background: #f0eadc; color: var(--accent); }
+  .b-type { background: #e8f1e1; color: var(--ok); }
+  .b-score { background: #fcefcd; color: var(--warn); }
+  .b-warn { background: #fce0d6; color: var(--err); }
+
+  .text { max-width: 460px; line-height: 1.5; }
+  .text-full {
+    background: white; border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px; margin: 8px 0; white-space: pre-wrap; font-size: 13px;
+  }
+  .src { font-size: 11px; color: var(--muted); word-break: break-all; }
+  .src a { color: var(--accent); }
+  .heading-path { font-size: 11px; color: var(--muted); font-style: italic; }
+  .empty { padding: 30px; text-align: center; color: var(--muted); }
+  .pager {
+    padding: 10px; text-align: center; border-top: 1px solid var(--border);
+    background: white; display: flex; gap: 10px; justify-content: center; align-items: center;
+  }
+  .pager button {
+    padding: 4px 12px; border: 1px solid var(--border); background: white;
+    border-radius: 6px; cursor: pointer;
+  }
+  .pager button:disabled { opacity: 0.5; cursor: not-allowed; }
+  code { background: var(--hover); padding: 1px 6px; border-radius: 4px; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>熹茗 KB 浏览器</h1>
+  <a href="/">← 返回客服</a>
+  <a href="/stats" target="_blank">统计 JSON</a>
+  <a href="#" id="show-pending">查看待人审 →</a>
+  <span class="stats" id="stats">…</span>
+</header>
+
+<div class="toolbar">
+  <input type="text" id="q" placeholder="语义检索（同时跑 BM25 + bge 向量），留空则按筛选浏览全库" />
+  <select id="category">
+    <option value="">全部品类</option>
+    <option>岩茶</option>
+    <option>白茶</option>
+    <option>红茶</option>
+    <option>普洱</option>
+    <option>绿茶</option>
+    <option>乌龙</option>
+    <option>茉莉</option>
+    <option>通用</option>
+  </select>
+  <select id="node_type">
+    <option value="">全部 node_type</option>
+    <option>raw_section</option>
+    <option>product</option>
+    <option>brewing</option>
+    <option>policy</option>
+    <option>brand</option>
+  </select>
+  <select id="host">
+    <option value="">全部域名</option>
+    <option value="ximingcha.com">官网 ximingcha.com</option>
+    <option value="baike.baidu.com">百度百科</option>
+  </select>
+  <label><input type="checkbox" id="sku_only" /> 仅 SKU 详情页</label>
+  <button id="search">搜索</button>
+</div>
+
+<div class="results">
+  <div class="summary" id="summary">加载中…</div>
+  <table id="tbl"><thead><tr>
+    <th style="width:90px">doc_id</th>
+    <th style="width:70px">分类</th>
+    <th style="width:90px">类型</th>
+    <th style="width:50px" title="trust_level：1-5，源越权威越高">权威</th>
+    <th style="width:80px">检索分</th>
+    <th>正文 / 来源</th>
+  </tr></thead><tbody></tbody></table>
+  <div class="pager" id="pager"></div>
+</div>
+
+<script>
+const $ = sel => document.querySelector(sel);
+const apiBase = (location.protocol === 'http:' || location.protocol === 'https:') ? '' : null;
+let state = { offset: 0, limit: 50, lastQuery: null };
+
+async function loadStats() {
+  if (apiBase === null) {
+    $('#stats').innerHTML = '<span style="color:var(--err)">⚠ 静态预览，需启动 uvicorn 后端</span>';
+    return;
+  }
+  try {
+    const s = await (await fetch('/stats')).json();
+    $('#stats').innerHTML = `<b>${s.kb_nodes}</b> 节点 · <b>${s.sku_pages}</b> SKU · ${Object.entries(s.by_category).map(([k,v])=>`${k} ${v}`).join(' · ')}`;
+  } catch (e) {
+    $('#stats').innerHTML = '<span style="color:var(--err)">后端未启动</span>';
+  }
+}
+
+async function search() {
+  if (apiBase === null) {
+    $('#summary').innerHTML = '<span style="color:var(--err)">⚠ 静态预览，需启动 <code>uvicorn app:app --port 8000</code> 后访问 <code>http://localhost:8000/admin</code></span>';
+    return;
+  }
+  const params = new URLSearchParams();
+  const q = $('#q').value.trim();
+  if (q) params.set('q', q);
+  const cat = $('#category').value;
+  if (cat) params.set('category', cat);
+  const nt = $('#node_type').value;
+  if (nt) params.set('node_type', nt);
+  const host = $('#host').value;
+  if (host) params.set('host', host);
+  if ($('#sku_only').checked) params.set('sku_only', 'true');
+  params.set('offset', state.offset);
+  params.set('limit', state.limit);
+
+  $('#summary').textContent = '查询中…';
+  try {
+    const r = await fetch('/nodes?' + params.toString());
+    const data = await r.json();
+    state.lastQuery = { q, cat, nt, host, total: data.total };
+    render(data, q);
+  } catch (e) {
+    $('#summary').innerHTML = '<span style="color:var(--err)">查询失败：' + e.message + '</span>';
+  }
+}
+
+function render(data, q) {
+  $('#summary').innerHTML = `共 <b>${data.total}</b> 条结果` +
+    (q ? `（关键词 <b>${escapeHtml(q)}</b> 命中后排序）` : '（按筛选浏览）') +
+    ` · 当前展示 ${data.items.length} 条`;
+  const tb = $('#tbl tbody');
+  tb.innerHTML = '';
+  if (!data.items.length) {
+    tb.innerHTML = '<tr><td colspan="5" class="empty">无结果</td></tr>';
+    $('#pager').innerHTML = '';
+    return;
+  }
+  for (const it of data.items) {
+    const row = document.createElement('tr');
+    const scoreCell = (it.score !== null && it.score !== undefined)
+      ? `<span class="badge b-score" title="vec=${it.score_vector} bm25=${it.score_bm25}">${it.score}</span>`
+      : '<span style="color:var(--muted);font-size:11px">—</span>';
+    const trustLevel = it.trust_level || 3;
+    const trustBadge = `<span class="badge ${trustLevel >= 5 ? 'b-type' : trustLevel >= 4 ? 'b-cat' : 'b-warn'}" title="trust_level=${trustLevel}（5=官网权威 / 4=百科媒体 / 3=行业站点）">${'★'.repeat(trustLevel)}</span>`;
+    row.innerHTML = `
+      <td><span class="doc_id" data-doc-id="${it.doc_id}">${it.doc_id}</span></td>
+      <td><span class="badge b-cat">${it.category || '—'}</span></td>
+      <td><span class="badge b-type">${it.node_type || '—'}</span></td>
+      <td>${trustBadge}</td>
+      <td>${scoreCell}</td>
+      <td>
+        ${it.heading_path ? `<div class="heading-path">${escapeHtml(it.heading_path)}</div>` : ''}
+        <div class="text">${escapeHtml(it.text || '')}</div>
+        <div class="src">${it.source_url ? `<a href="${it.source_url}" target="_blank">${shortUrl(it.source_url)}</a>` : ''}</div>
+      </td>`;
+    tb.appendChild(row);
+  }
+  // 行点击展开全文
+  tb.querySelectorAll('.doc_id').forEach(el => {
+    el.onclick = async () => {
+      const id = el.dataset.docId;
+      const tr = el.closest('tr');
+      const next = tr.nextElementSibling;
+      if (next && next.classList.contains('full-row')) { next.remove(); tr.classList.remove('expanded'); return; }
+      const r = await fetch('/nodes/' + id);
+      const d = await r.json();
+      const full = document.createElement('tr');
+      full.className = 'full-row';
+      full.innerHTML = `<td colspan="5">
+        <div class="text-full">${escapeHtml(d.text)}</div>
+        <div class="src"><b>meta:</b> ${escapeHtml(JSON.stringify(d.meta))}</div>
+      </td>`;
+      tr.classList.add('expanded');
+      tr.after(full);
+    };
+  });
+  // 分页
+  const hasMore = !state.lastQuery.q && (state.offset + state.limit < data.total);
+  const hasPrev = !state.lastQuery.q && state.offset > 0;
+  $('#pager').innerHTML = `
+    <button id="prev" ${hasPrev ? '' : 'disabled'}>← 上一页</button>
+    <span>第 ${Math.floor(state.offset/state.limit)+1} 页</span>
+    <button id="next" ${hasMore ? '' : 'disabled'}>下一页 →</button>`;
+  if (hasPrev) $('#prev').onclick = () => { state.offset = Math.max(0, state.offset - state.limit); search(); };
+  if (hasMore) $('#next').onclick = () => { state.offset += state.limit; search(); };
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function shortUrl(u) { return u.length > 80 ? u.slice(0,80) + '…' : u; }
+
+$('#search').onclick = () => { state.offset = 0; search(); };
+$('#q').addEventListener('keydown', e => { if (e.key === 'Enter') { state.offset = 0; search(); } });
+[...document.querySelectorAll('select, #sku_only')].forEach(el => el.onchange = () => { state.offset = 0; search(); });
+
+$('#show-pending').onclick = async (e) => {
+  e.preventDefault();
+  if (apiBase === null) return;
+  const d = await (await fetch('/pending')).json();
+  $('#summary').innerHTML = `<b>待人审节点 ${d.total}</b>（命中敏感词，<i>未入</i>知识库）`;
+  const tb = $('#tbl tbody');
+  tb.innerHTML = '';
+  for (const it of d.items) {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><span class="doc_id">${it.doc_id || ''}</span></td>
+      <td><span class="badge b-warn">敏感</span></td>
+      <td><span class="badge b-type">${it.node_type || '—'}</span></td>
+      <td><span class="badge b-warn">⛔</span></td>
+      <td><span class="badge b-warn">人审</span></td>
+      <td>
+        <div class="text">${escapeHtml((it.text || '').slice(0, 300))}</div>
+        <div class="src"><a href="${it.source_url}" target="_blank">${shortUrl(it.source_url || '')}</a></div>
+      </td>`;
+    tb.appendChild(row);
+  }
+  $('#tbl tbody').innerHTML += '';
+  $('#pager').innerHTML = '';
+};
+
+loadStats();
+search();
+</script>
+</body>
+</html>
