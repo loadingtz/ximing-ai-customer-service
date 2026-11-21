@@ -1,9 +1,9 @@
 {
-  "pages_fetched": 4,
-  "nodes_total": 21,
-  "nodes_approved": 21,
+  "pages_fetched": 0,
+  "nodes_total": 0,
+  "nodes_approved": 0,
   "nodes_pending_review": 0,
-  "nodes_indexed": 21,
+  "nodes_indexed": 0,
   "fetch_backend": "multi (jina/tavily/firecrawl)",
   "search_backend": "multi (tavily/serpapi/jina-ddg/jina-bing/ddg-lib)",
   "extract_mode": "section",
